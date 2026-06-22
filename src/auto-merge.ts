@@ -1,8 +1,10 @@
 import { Octokit } from "octokit";
-import { log } from "./tools";
+import { log } from "./tools.js";
+import { AppError } from "./errors.js";
 
 export const autoMerge = async (octokit: Octokit, owner: string, repo: string, forceMerge: boolean, printFormatted = true) => {
   const ret = { errors: [], outputs: [], logs: [] };
+  const mergeFailures: Array<{ pullNumber: number; status?: number; message: string }> = [];
 
   log("AutoMerge", "[General] Getting PRs...", ret.logs, printFormatted);
   const time0Process = Date.now();
@@ -51,31 +53,43 @@ export const autoMerge = async (octokit: Octokit, owner: string, repo: string, f
         pull_number: pull.number,
       });
 
-      log("AutoMerge", "[General] " + "MERGE", ret.logs, printFormatted);
-      log("AutoMerge", "[General] " + (result.status === 200) ? "Merged." : "Not Merged", ret.logs, printFormatted);
+      if (!result.data.merged) {
+        mergeFailures.push({ pullNumber: pull.number, status: result.status, message: result.data.message || "Pull request was not merged." });
+        continue;
+      }
 
-      log("AutoMerge", "[General] " + "CHECK", ret.logs, printFormatted);
+      ret.outputs.push({ key: "mergedPullRequest", value: pull.number });
+      log("AutoMerge", "[General] Merged.", ret.logs, printFormatted);
+
+      log("AutoMerge", "[General] Checking merge status.", ret.logs, printFormatted);
 
       const resultCheck = await octokit.rest.pulls.checkIfMerged({
         owner,
         repo,
         pull_number: pull.number,
       });
-      log("AutoMerge", "[General] " + (resultCheck.status === 204) ? "Merged." : "Not Merged", ret.logs, printFormatted);
+      log("AutoMerge", resultCheck.status === 204 ? "[General] Merge confirmed." : "[General] Merge not confirmed.", ret.logs, printFormatted);
     } catch (error) {
-      switch (error.status) {
-        case 405:
-        case 404:
-          ret.errors.push("[AutoMerge] [General] Pull Request was not merged.");
-          break;
+      const status = (error as { status?: number }).status;
+      if (status === 404 || status === 405 || status === 409) {
+        mergeFailures.push({
+          pullNumber: pull.number,
+          status,
+          message: error instanceof Error ? error.message : "Pull request was not merged.",
+        });
+        continue;
       }
+      throw error;
     }
   }
   log("AutoMerge", "[General] PRs listing finished! (" + (Date.now() - time1Process) + "ms)", ret.logs, printFormatted);
 
   log("AutoMerge", "[General] Total Time: " + (Date.now() - time0Process) + "ms", ret.logs, printFormatted);
-  if (printFormatted) console.log(`${JSON.stringify(JSON.stringify(ret))}`);
-  else console.log(ret);
+  if (mergeFailures.length > 0) {
+    throw new AppError("PULL_REQUEST_MERGE_FAILED", `${mergeFailures.length} pull request(s) could not be merged.`, 5, {
+      failures: mergeFailures,
+    });
+  }
 
   return ret;
 };

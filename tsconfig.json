@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "module": "commonjs",
+    "module": "NodeNext",
     "esModuleInterop": true,
-    "target": "esnext",
-    "moduleResolution": "node",
+    "target": "ES2022",
+    "moduleResolution": "NodeNext",
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "outDir": "dist"
+    "rootDir": "src",
+    "outDir": "dist",
+    "types": ["node"]
   },
-  "lib": ["esnext"],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

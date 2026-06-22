@@ -1,8 +1,8 @@
 import { Octokit } from "octokit";
 
-export const createOctokit = (opts: { token: string }) => {
+export const createOctokit = (opts: { token?: string }) => {
   return new Octokit({
-    auth: opts.token,
+    ...(opts.token ? { auth: opts.token } : {}),
     userAgent: "ASTAP-Script",
     timeZone: "Europe/Zurich",
   });

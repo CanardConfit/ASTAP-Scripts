@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   semi: true,
   singleQuote: false,
   trailingComma: "all",
@@ -8,6 +8,6 @@ module.exports = {
   endOfLine: "auto",
   arrowParens: "always",
   bracketSpacing: true,
-  jsxBracketSameLine: false,
+  bracketSameLine: false,
   proseWrap: "always",
 };
