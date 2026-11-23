@@ -1,4 +1,10 @@
-FROM node:26-bookworm-slim AS build
+FROM node:26-bookworm-slim AS base
+
+RUN npm install --global yarn@1.22.22 \
+    && npm cache clean --force
+
+
+FROM base AS build
 
 WORKDIR /app
 
@@ -10,7 +16,7 @@ COPY src ./src
 RUN yarn build
 
 
-FROM node:26-bookworm-slim AS production-dependencies
+FROM base AS production-dependencies
 
 ENV NODE_ENV=production
 WORKDIR /app
@@ -20,7 +26,7 @@ RUN yarn install --frozen-lockfile --production=true \
     && yarn cache clean
 
 
-FROM node:26-bookworm-slim AS runtime
+FROM base AS runtime
 
 ENV NODE_ENV=production \
     ASTAP_DOWNLOAD_DIR=/downloads
