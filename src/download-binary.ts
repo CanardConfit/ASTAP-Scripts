@@ -14,7 +14,6 @@ export const BINARY_ARTIFACTS = {
     portable: "astapwin32.zip",
     "cli-x64": "astap_command-line_version_win64.zip",
     "cli-x86": "astap_command-line_version_win32.zip",
-    "cli-arm64": "astap_command-line_version_win11_aarch64.zip",
   },
   macos: {
     "installer-x64": "astap.pkg",

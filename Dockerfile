@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS build
+FROM node:27-bookworm-slim AS build
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY src ./src
 RUN yarn build
 
 
-FROM node:22-bookworm-slim AS production-dependencies
+FROM node:27-bookworm-slim AS production-dependencies
 
 ENV NODE_ENV=production
 WORKDIR /app
@@ -20,7 +20,7 @@ RUN yarn install --frozen-lockfile --production=true \
     && yarn cache clean
 
 
-FROM node:22-bookworm-slim AS runtime
+FROM node:27-bookworm-slim AS runtime
 
 ENV NODE_ENV=production \
     ASTAP_DOWNLOAD_DIR=/downloads
